@@ -19,7 +19,7 @@ int main(){
     fd_set rdset;FD_ZERO(&rdset);//创建位图,初始化(清空位图)
     FD_SET(listenfd,&rdset);//把监听socket放进位图
     int maxfd=listenfd;//记录最大描述符
-    fd_set temp_fdset;//临时描述符,用于发送给内核
+    fd_set temp_fdset;//临时集合,用于发送给内核
     while(true){
         temp_fdset=rdset;
         int ret=select(maxfd+1,&temp_fdset,nullptr,nullptr,nullptr);//无限等待,表示一定有事件到来了
