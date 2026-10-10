@@ -16,23 +16,22 @@ int main(){
     if(::bind(listenfd,(struct sockaddr*)&sockaddr,sizeof(sockaddr))<0) {perror("bind");return -1;}
     if(::listen(listenfd,1024)<0){perror("listen");return -1;}
 
-    fd_set rdset;FD_ZERO(&rdset);
-    FD_SET(listenfd,&rdset);
-    int maxfd=listenfd;
-    fd_set temp_fdset;
-    mutex mtx;
+    fd_set rdset;FD_ZERO(&rdset);//创建位图,初始化(清空位图)
+    FD_SET(listenfd,&rdset);//把监听socket放进位图
+    int maxfd=listenfd;//记录最大描述符
+    fd_set temp_fdset;//临时描述符,用于发送给内核
     while(true){
         temp_fdset=rdset;
         int ret=select(maxfd+1,&temp_fdset,nullptr,nullptr,nullptr);//无限等待,表示一定有事件到来了
 
-        if(FD_ISSET(listenfd,&temp_fdset)){
+        if(FD_ISSET(listenfd,&temp_fdset)){//如果监听fd在内核返回的位图中
             int connectfd=accept(listenfd,nullptr,nullptr);
             FD_SET(connectfd,&rdset);
             maxfd=maxfd>connectfd?maxfd:connectfd;
         }
-        for(int fd=0;fd<=maxfd;fd++){
+        for(int fd=0;fd<=maxfd;fd++){//遍历整个集合
 
-            if(fd!=listenfd&&FD_ISSET(fd,&temp_fdset)){
+            if(fd!=listenfd&&FD_ISSET(fd,&temp_fdset)){//如果不是监听,并且在内核返回的集合中
                 string buffer;buffer.resize(1024);
                 int ret=recv(fd,&buffer[0],buffer.size(),0);
 
